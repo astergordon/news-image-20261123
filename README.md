@@ -18,9 +18,19 @@ stories verified against multiple outlets reporting that day.
 6. **Democrats clinch biggest House majority since 1992** — a North Carolina seat seals the Democrats' largest House majority since 1992.
 7. **Benghazi port 'under control'** — Libya's military says the port is secure and 'fully prepared' after the suspected Ukrainian drone strike that sank the Russian warship Merkury.
 
-The image is drawn with code (Pillow) from the verified facts above; `main.py`
-copies the committed `entry.png` to the output directory, so both runs write
-identical bytes.
+## How it is made
+
+The front page is drawn with code (Pillow) from the verified facts above:
+masthead and dateline first, the lead story across the top, then the six
+other stories in a two-column grid, each with its own headline and a
+one-line summary. Nothing in the image is pasted in from elsewhere — every
+glyph and rule is placed by the drawing script, and the finished 1024x1024
+PNG is committed here as `entry.png`.
+
+`main.py` does not redraw anything: it copies the committed `entry.png` to
+the output directory and checks the copy's SHA-256 against the original,
+so two runs write identical bytes. Run it twice and compare the hashes;
+they match.
 
 ## Run it
 

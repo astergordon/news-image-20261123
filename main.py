@@ -1,27 +1,51 @@
 #!/usr/bin/env python3
-"""news-image-20261123 entry: copy the committed front-page image to the output directory.
+"""Place the committed front-page image at the harness output path.
 
-The image (entry.png) is a newspaper front page summing up the world news of
-Monday 23 November 2026. This program does no drawing and no network: it
-copies the committed file byte for byte, so both grading runs write identical
-bytes.
+The entry itself is entry.png: a 1024x1024 newspaper front page summing
+up the world news of Monday 23 November 2026, drawn from verified
+headlines and committed to this repository. This script draws nothing
+and fetches nothing. It copies that file, byte for byte, into the
+output directory and refuses to finish unless the copy matches the
+original exactly.
+
+The output directory comes from the MAKEFUN_OUTPUT_DIR environment
+variable and defaults to /output.
 """
+
+import hashlib
 import os
 import shutil
+import sys
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
+
+def sha256_of(path):
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for block in iter(lambda: handle.read(65536), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def main():
-    os.makedirs(OUT, exist_ok=True)
-    src = os.path.join(HERE, "entry.png")
-    dst = os.path.join(OUT, "entry.png")
-    shutil.copyfile(src, dst)
-    # Fail loudly instead of silently shipping a partial copy.
-    with open(src, "rb") as f_src, open(dst, "rb") as f_dst:
-        assert f_src.read() == f_dst.read(), "entry.png copy mismatch"
+    here = os.path.dirname(os.path.abspath(__file__))
+    source = os.path.join(here, "entry.png")
+    out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
+    target = os.path.join(out_dir, "entry.png")
+
+    if not os.path.isfile(source):
+        print("entry.png is missing next to main.py", file=sys.stderr)
+        return 1
+
+    os.makedirs(out_dir, exist_ok=True)
+    shutil.copyfile(source, target)
+
+    if sha256_of(source) != sha256_of(target):
+        print("output does not match the committed entry.png", file=sys.stderr)
+        return 1
+
+    print("wrote " + target)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
